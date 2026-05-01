@@ -15,17 +15,25 @@
  */
 
 
-pub mod EffectExtras {
+pub mod EffectExtras.Fail {
 
-    pub eff Alt {
-        def alternative(): Bool
-        def failure(msg: String): Void
+    use IoError.ErrorKind
+    use IoError.IoError
+
+
+    pub def handleAsResult(f: a -> b \ ef): a -> Result[String, b] \ ef - Fail = x -> {
+        run {
+            Ok(f(x))
+        } with handler Fail {
+            def report(s, _) = Err(s)
+        }
     }
 
-    pub eff Fail {
-        def report(msg: String): Void
-    }
+    pub def runFailAsResult(f: Unit -> a \ ef): Result[String, a] \ ef - Fail = 
+        handleAsResult(f)()
 
+    pub def runFailAsResultOfIoError(f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail = 
+        handleAsResult(f)() |> Result.mapErr(s -> IoError(IoError.ErrorKind.Other, s))
 
 
 }
