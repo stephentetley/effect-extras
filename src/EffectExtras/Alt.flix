@@ -17,6 +17,8 @@
 
 pub mod EffectExtras.Alt {
 
+
+    // An effect for recoverable errors within a "run".
     pub eff Alt {
         def alternative(): Bool
         def failure(msg: String): Void
