@@ -17,15 +17,6 @@
 
 pub mod EffectExtras {
 
-    pub eff Alt {
-        def alternative(): Bool
-        def failure(msg: String): Void
-    }
-
-    pub eff Fail {
-        def report(msg: String): Void
-    }
-
 
 
 }

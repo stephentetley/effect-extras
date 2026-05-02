@@ -21,7 +21,14 @@ pub mod EffectExtras.Fail {
     use IoError.IoError
 
 
-    pub def handleAsResult(f: a -> b \ ef): a -> Result[String, b] \ ef - Fail = x -> {
+    // An effect for error observable by "running" but not 
+    // observable within a "run" itself.
+    pub eff Fail {
+        def report(msg: String): Void
+    }
+
+
+    pub def handleWithResult(f: a -> b \ ef): a -> Result[String, b] \ ef - Fail = x -> {
         run {
             Ok(f(x))
         } with handler Fail {
@@ -29,11 +36,11 @@ pub mod EffectExtras.Fail {
         }
     }
 
-    pub def runFailAsResult(f: Unit -> a \ ef): Result[String, a] \ ef - Fail = 
-        handleAsResult(f)()
+    pub def runWithResult(f: Unit -> a \ ef): Result[String, a] \ ef - Fail = 
+        handleWithResult(f)()
 
-    pub def runFailAsResultOfIoError(f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail = 
-        handleAsResult(f)() |> Result.mapErr(s -> IoError(IoError.ErrorKind.Other, s))
+    pub def runWithResultOfIoError(f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail = 
+        handleWithResult(f)() |> Result.mapErr(s -> IoError(IoError.ErrorKind.Other, s))
 
 
 }
