@@ -48,20 +48,24 @@ pub mod EffectExtras.Alt {
     pub def optional(p: Unit -> a \ ef ): Option[a] \ Alt + ef = 
         alt(_ -> { let a = p(); Some(a)}, _ -> None)
 
-
     pub def withDefault(p: Unit -> a \ ef, d: a): a \ Alt + ef = 
         alt(p, _ -> d)
 
+    pub def swapError(msg: String, p: Unit -> a \ ef): a \ Alt + ef = 
+        alt(p, _ -> Alt.failure(msg))
+        
 
-    pub def manyWith(combine: (a, ac) -> ac, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef) = 
-        def loop(k) = {
-            let ans = EffectExtras.Alt.optional(p);
-            match ans {
-                case Some(a) => loop(ka -> { let ac = combine(a, ka); k(ac) })
-                case None    => k(init)
-            }
-        };
-        loop(x -> x)
+    // Don't need `seqLeft` / `seqRight` as the defintion is just the direct 
+    // style 
+
+    // pub def seqLeft(p: Unit -> a \ ef1, q: Unit -> b \ ef2): a \ ef1 + ef2 = 
+    //     let a = p();
+    //     let _ = q();
+    //     a
+
+
+    // parser style combinators - use `many` etc with care, they will loop 
+    // forever without a stopping condition
 
     pub def many(p: Unit -> a \ ef): List[a] \ Alt + ef = 
         def loop(k) = {
@@ -72,10 +76,32 @@ pub mod EffectExtras.Alt {
         };
         loop(identity)
 
+
+    pub def manyWith(combine: (a, ac) -> ac, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef) = 
+        def loop(k) = {
+            match EffectExtras.Alt.optional(p) {
+                case Some(a) => loop(ka -> { let ac = combine(a, ka); k(ac) })
+                case None    => k(init)
+            }
+        };
+        loop(x -> x)
+
+
     pub def many1(p: Unit -> a \ ef): List[a] \ Alt + ef = 
-        let first = p();
-        let tail = many(p);
-        first :: tail
+        p() :: many(p)
+
+    pub def sepBy(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+        alt(_ -> p() :: many( _ -> { let _ = sep(); p() }), _ -> Nil)
+
+
+    pub def sepBy1(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+        p() :: many(_ -> { let _ = sep(); p() })
+
+
+    // many separated and ended by - 
+    pub def endBy(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+        many(_ -> { let a = p(); let _ = sep(); a })
+
 
     pub def count(n: Int32, p: Unit -> a \ ef): List[a] \ Alt + ef = 
        def loop(i, k) = {
@@ -118,8 +144,9 @@ pub mod EffectExtras.Alt {
                     case Some(_) => loop(k)
                     case None    => Alt.failure("skipManyTill")
                 }
-            }
+            }   
         };
         loop(identity)
 
 }
+
