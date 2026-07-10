@@ -52,4 +52,74 @@ pub mod EffectExtras.Alt {
     pub def withDefault(p: Unit -> a \ ef, d: a): a \ Alt + ef = 
         alt(p, _ -> d)
 
+
+    pub def manyWith(combine: (a, ac) -> ac, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef) = 
+        def loop(k) = {
+            let ans = EffectExtras.Alt.optional(p);
+            match ans {
+                case Some(a) => loop(ka -> { let ac = combine(a, ka); k(ac) })
+                case None    => k(init)
+            }
+        };
+        loop(x -> x)
+
+    pub def many(p: Unit -> a \ ef): List[a] \ Alt + ef = 
+        def loop(k) = {
+            match EffectExtras.Alt.optional(p) {
+                case Some(a) => loop(ks -> k(List.cons(a, ks)))
+                case None    => k(Nil)
+            }
+        };
+        loop(identity)
+
+    pub def many1(p: Unit -> a \ ef): List[a] \ Alt + ef = 
+        let first = p();
+        let tail = many(p);
+        first :: tail
+
+    pub def count(n: Int32, p: Unit -> a \ ef): List[a] \ Alt + ef = 
+       def loop(i, k) = {
+            if (i > 0) {
+                let a = p();
+                loop(i - 1, ks -> k(List.cons(a, ks)))
+            }
+            else k(Nil)
+        };
+        loop(n, identity)
+
+    pub def ntimes(p: Unit -> a \ ef): Int32 \ Alt + ef = 
+       def loop(k) = {
+            match EffectExtras.Alt.optional(p) {
+                case Some(_) => loop(ki -> k(ki + 1))
+                case None    => k(0)
+            }
+        };
+        loop(identity)
+
+
+    pub def skipMany(p: Unit -> a \ ef): Unit \ Alt + ef = 
+        def loop(k) = {
+            match EffectExtras.Alt.optional(p) {
+                case Some(_) => loop(ku -> k(ku))
+                case None    => k()
+            }
+        };
+        loop(identity)
+
+    pub def skipMany1(p: Unit -> a \ ef): Unit \ Alt + ef = 
+        let _ = p();
+        skipMany(p)
+
+    pub def skipManyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef): Unit \ Alt + ef = 
+        def loop(k) = {
+            match EffectExtras.Alt.optional(endp) {
+                case Some(_) => k()
+                case None    => match EffectExtras.Alt.optional(p) {
+                    case Some(_) => loop(k)
+                    case None    => Alt.failure("skipManyTill")
+                }
+            }
+        };
+        loop(identity)
+
 }

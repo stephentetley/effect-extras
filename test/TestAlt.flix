@@ -26,4 +26,11 @@ pub mod TestAlt {
         } with EffectExtras.Alt.runWithResult;
         Assert.assertEq(expected = Ok(1), ans)
 
+    @Test
+    pub def count01(): Unit \ { Assert } = 
+        let ans = run {
+            EffectExtras.Alt.count(2, () -> 1)
+        } with EffectExtras.Alt.runWithResult;
+        Assert.assertEq(expected = Ok(List#{1, 1}), ans)
+
 }
