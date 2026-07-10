@@ -67,24 +67,22 @@ pub mod EffectExtras.Alt {
     // parser style combinators - use `many` etc with care, they will loop 
     // forever without a stopping condition
 
-    pub def many(p: Unit -> a \ ef): List[a] \ Alt + ef = 
-        def loop(k) = {
+    // `failure` is the stopping condition, so we can't use this for combinators like 
+    // `skipManyTill` that stop on success.
+    def looping(p: Unit -> a \ ef, init: ac, sk: (a, ac) -> ac \ ef1): ac \ Alt + ef + ef1 =  
+       def loop(k) = {
             match EffectExtras.Alt.optional(p) {
-                case Some(a) => loop(ks -> k(List.cons(a, ks)))
-                case None    => k(Nil)
-            }
-        };
-        loop(identity)
-
-
-    pub def manyWith(combine: (a, ac) -> ac, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef) = 
-        def loop(k) = {
-            match EffectExtras.Alt.optional(p) {
-                case Some(a) => loop(ka -> { let ac = combine(a, ka); k(ac) })
+                case Some(a) => loop(ka -> let ans = unchecked_cast(sk(a, ka) as _  \ {}); k(ans))
                 case None    => k(init)
             }
         };
-        loop(x -> x)
+        unchecked_cast(loop(x -> x) as _  \ Alt + ef + ef1)
+
+    pub def many(p: Unit -> a \ ef): List[a] \ Alt + ef = 
+        looping(p, Nil, List.cons)
+
+    pub def manyWith(combine: (a, ac) -> ac \ ef1, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
+        looping(p, init, combine)
 
 
     pub def many1(p: Unit -> a \ ef): List[a] \ Alt + ef = 
@@ -113,33 +111,24 @@ pub mod EffectExtras.Alt {
         };
         loop(n, identity)
 
+
+
+
     pub def ntimes(p: Unit -> a \ ef): Int32 \ Alt + ef = 
-       def loop(k) = {
-            match EffectExtras.Alt.optional(p) {
-                case Some(_) => loop(ki -> k(ki + 1))
-                case None    => k(0)
-            }
-        };
-        loop(identity)
+       looping(p, 0, (_, ac) -> ac + 1)
 
 
     pub def skipMany(p: Unit -> a \ ef): Unit \ Alt + ef = 
-        def loop(k) = {
-            match EffectExtras.Alt.optional(p) {
-                case Some(_) => loop(ku -> k(ku))
-                case None    => k()
-            }
-        };
-        loop(identity)
+        looping(p, (), (_, ac) -> ac)
 
     pub def skipMany1(p: Unit -> a \ ef): Unit \ Alt + ef = 
         let _ = p();
         skipMany(p)
 
-    pub def skipManyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef): Unit \ Alt + ef = 
+    pub def skipManyTill(p: Unit -> a \ ef1, endp: Unit -> b \ ef2): b \ Alt + ef1 + ef2 = 
         def loop(k) = {
             match EffectExtras.Alt.optional(endp) {
-                case Some(_) => k()
+                case Some(b) => k(b)
                 case None    => match EffectExtras.Alt.optional(p) {
                     case Some(_) => loop(k)
                     case None    => Alt.failure("skipManyTill")
