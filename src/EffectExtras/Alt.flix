@@ -16,7 +16,7 @@
 
 
 pub mod EffectExtras.Alt {
-
+    
 
     // An effect for recoverable errors within a "run".
     pub eff Alt {
@@ -71,18 +71,21 @@ pub mod EffectExtras.Alt {
     // `skipManyTill` that stop on success.
     def loopTillFail(p: Unit -> a \ ef1, init: ac, sk: (a, ac) -> ac \ ef2): ac \ Alt + ef1 + ef2 =  
        def loop(k) = {
-            match EffectExtras.Alt.optional(p) {
+            match optional(p) {
                 case Some(a) => loop(ka -> let ans = unchecked_cast(sk(a, ka) as _  \ {}); k(ans))
                 case None    => k(init)
             }
         };
         unchecked_cast(loop(x -> x) as _  \ Alt + ef1 + ef2)
 
-    def loopTillEnd(p: Unit -> a \ ef1, endp: Unit -> b \ ef2, init: ac, sk: (a, ac) -> ac \ ef3): (ac, b) \ Alt + ef1 + ef2 + ef3 =  
+    def loopTillEnd(p: Unit -> a \ ef1, 
+                    endp: Unit -> b \ ef2, 
+                    init: ac, 
+                    sk: (a, ac) -> ac \ ef3): (ac, b) \ Alt + ef1 + ef2 + ef3 =  
        def loop(ac, k) = {
-            match EffectExtras.Alt.optional(endp) {
+            match optional(endp) {
                 case Some(b) => k(ac, b)
-                case None    =>  {
+                case None    => {
                     let a = p();
                     let ac1 = unchecked_cast(sk(a, ac) as _  \ {});
                     loop(ac1, k)
@@ -91,45 +94,164 @@ pub mod EffectExtras.Alt {
         };
         loop(init, (ac, b) -> (ac, b))
 
+    pub def pchoice(ps: List[Unit -> a \ ef]): a \ Alt + ef = 
+        def loop(xs) = match xs {
+            case p :: fs => alt(p, _ -> loop(fs))
+            case Nil     => Alt.failure("pchoice")
+        };
+        loop(ps)
+
+
 
     pub def many(p: Unit -> a \ ef): List[a] \ Alt + ef = 
         loopTillFail(p, Nil, List.cons)
 
-    pub def manyWith(combine: (a, ac) -> ac \ ef1, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
+    pub def manyWith(combine: (a, ac) -> ac \ ef1, 
+                        init: ac, 
+                        p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
         loopTillFail(p, init, combine)
 
 
     pub def many1(p: Unit -> a \ ef): List[a] \ Alt + ef = 
         p() :: many(p)
 
-    pub def sepBy(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+    pub def many1With(combine: (a, ac) -> ac \ ef1, 
+                        init: ac, 
+                        p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
+        combine(p(), manyWith(combine, init, p))
+
+    pub def manyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
+        def loop(k) = {
+            match optional(endp) {
+                case Some(_) => k(Nil)
+                case None    => match optional(p) {
+                    case Some(a) => loop(ks -> k(a :: ks))
+                    case None => Alt.failure("manyTill")
+                }
+            }
+        };
+        loop(x -> x)
+
+
+
+    pub def manyTillWith(combine: (a, ac) -> ac \ ef2, 
+                            init: ac, 
+                            p: Unit -> a \ ef, 
+                            endp: Unit -> b \ ef1): ac \ Alt + ef + ef1 + ef2 = 
+        loopTillEnd(p, endp, init, combine) |> fst
+
+    pub def many1Till(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
+        p() :: manyTill(p, endp)
+
+    pub def many1TillWith(combine: (a, ac) -> ac \ ef2, 
+                            init: ac, 
+                            p: Unit -> a \ ef, 
+                            endp: Unit -> b \ ef1): ac \ Alt + ef + ef1 + ef2 = 
+        combine(p(), manyTillWith(combine, init, p, endp))
+
+
+    pub def sepBy(p: Unit -> a \ ef, sep: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
         alt(_ -> p() :: many( _ -> { let _ = sep(); p() }), _ -> Nil)
 
+    pub def sepByWith(combine: (a, ac) -> ac \ ef2, 
+                        init: ac, 
+                        p: Unit -> a \ ef, 
+                        sep: Unit -> b \ ef1): ac \ (Alt + ef + ef1 + ef2) = 
+        alt(_ -> combine(p(), manyWith(combine, init, _ -> { let _ = sep(); p() })), _ -> init)
 
-    pub def sepBy1(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+
+    pub def sepBy1(p: Unit -> a \ ef, sep: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
         p() :: many(_ -> { let _ = sep(); p() })
 
+    pub def sepBy1With(combine: (a, ac) -> ac \ ef2, 
+                        init: ac, 
+                        p: Unit -> a \ ef, 
+                        sep: Unit -> b \ ef1): ac \ (Alt + ef + ef1 + ef2)= 
+        combine(p(), manyWith(combine, init, _ -> { let _ = sep(); p() }))
 
-    // many separated and ended by - 
-    pub def endBy(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+    // separated and optionally terminated with sep.
+    pub def sepEndBy(p: Unit -> a \ ef, sep: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
+        def loop(k) = match optional(p) {
+            case Some(a) => match optional(sep) {
+                case Some(_) => loop(ks -> k(a :: ks))
+                case None => k(List#{a})                
+            }
+            case None => k(Nil)
+        };
+        loop(x -> x)
+
+   pub def sepEndByWith(combine: (a, ac) -> ac \ ef2, 
+                        init: ac,
+                        p: Unit -> a \ ef, 
+                        sep: Unit -> b \ ef1): ac \ Alt + ef + ef1 + ef2 = 
+        def loop(k) = match optional(p) {
+            case Some(a) => match optional(sep) {
+                case Some(_) => loop(ka -> k(unchecked_cast(combine(a, ka) as _ \ {})))
+                case None => k(combine(a, init))
+            }
+            case None => k(init)
+        };
+        unchecked_cast(loop(x -> x) as _ \ Alt + ef + ef1 + ef2)
+
+
+    pub def sepEndBy1(p: Unit -> a \ ef, sep: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
+        let a = p();
+        alt(_ -> { let _ = sep(); let rest = sepEndBy(p, sep); a :: rest }, _ -> List#{a})
+
+   pub def sepEndBy1With(combine: (a, ac) -> ac \ ef2, 
+                            init: ac, 
+                            p: Unit -> a \ ef, 
+                            sep: Unit -> b \ ef1): ac \ Alt + ef + ef1 + ef2 = 
+        let a = p();
+        alt(_ -> { let _ = sep(); let rest = sepEndByWith(combine, init, p, sep); combine(a, rest) }, _ -> combine(a, init))
+
+
+
+    // many separated and ended by `sep`
+    pub def endBy(p: Unit -> a \ ef, sep: Unit -> b \ ef): List[a] \ Alt + ef = 
         many(_ -> { let a = p(); let _ = sep(); a })
+
+    pub def endByWith(combine: (a, ac) -> ac \ ef2, init: ac, p: Unit -> a \ ef, sep: Unit -> b \ ef1): ac \ (Alt + ef + ef1 + ef2) = 
+        manyWith(combine, init, _ -> { let a = p(); let _ = sep(); a })
+
+    pub def endBy1(p: Unit -> a \ ef, sep: Unit -> a \ ef): List[a] \ Alt + ef = 
+        let a = p();
+        let _ = sep();
+        a :: endBy(p, sep)
+
+    pub def endBy1With(combine: (a, ac) -> ac \ ef2, init: ac, p: Unit -> a \ ef, sep: Unit -> b \ ef1): ac \ (Alt + ef + ef1 + ef2) = 
+        let a = p();
+        let _ = sep();
+        combine(a, endByWith(combine, init, p, sep))
 
 
     pub def count(n: Int32, p: Unit -> a \ ef): List[a] \ Alt + ef = 
+       countWith((x,xs) -> x :: xs, Nil, n, p)
+
+    pub def countWith(combine: (a, ac) -> ac \ ef1, init: ac, n: Int32, p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
        def loop(i, k) = {
             if (i > 0) {
                 let a = p();
-                loop(i - 1, ks -> k(List.cons(a, ks)))
+                loop(i - 1, ks -> k(unchecked_cast(combine(a, ks) as _ \ {})))
             }
-            else k(Nil)
+            else k(init)
         };
-        loop(n, identity)
-
+        unchecked_cast(loop(n, identity) as _ \ Alt + ef + ef1)
 
 
 
     pub def ntimes(p: Unit -> a \ ef): Int32 \ Alt + ef = 
-       loopTillFail(p, 0, (_, ac) -> ac + 1)
+       manyWith((_, ac) -> ac + 1, 0, p)
+
+
+    pub def ntimesSepBy(p: Unit -> a \ ef, sep: Unit -> b \ ef1): Int32 \ Alt + ef + ef1 = 
+       sepByWith((_, ac) -> ac + 1, 0 , p, sep)
+
+    pub def ntimesEndBy(p: Unit -> a \ ef, sep: Unit -> b \ ef1): Int32 \ Alt + ef + ef1 = 
+       endByWith((_, ac) -> ac + 1, 0 , p, sep)
+
+    pub def ntimesSepEndBy(p: Unit -> a \ ef, sep: Unit -> b \ ef1): Int32 \ Alt + ef + ef1 = 
+       sepEndByWith((_, ac) -> ac + 1, 0 , p, sep)
 
 
     pub def skipMany(p: Unit -> a \ ef): Unit \ Alt + ef = 

@@ -4,6 +4,36 @@ pub mod TestAlt {
 
     use Assert.{assertTrue}
     use EffectExtras.Alt.Alt
+    use SimpleParse.{runParser}
+
+
+    @Test
+    pub def parse01(): Unit \ { Assert } = 
+        let ans = runParser(
+            _ -> SimpleParse.next(), 
+            List#{1,2,3,4}
+        );
+        Assert.assertEq(expected = Ok(1), ans)
+
+
+    @Test
+    pub def many01(): Unit \ { Assert } = 
+        let ans = runParser(
+            _ -> EffectExtras.Alt.many(_ -> SimpleParse.next()), 
+            List#{1,2,3,4}
+        );
+        Assert.assertEq(expected = Ok(List#{1,2,3,4}), ans)
+
+    @Test
+    pub def manyTill01(): Unit \ { Assert } = 
+        let four = _ -> SimpleParse.satisfies(x -> x == 4);
+        let ans = runParser(
+            _ -> EffectExtras.Alt.manyTill(_ -> SimpleParse.next(), four), 
+            List#{1,2,3,4}
+        );
+        Assert.assertEq(expected = Ok(List#{1,2,3}), ans)
+
+
 
     @Test
     pub def test01(): Unit \ { Assert } = 
