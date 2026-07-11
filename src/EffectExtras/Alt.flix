@@ -69,20 +69,34 @@ pub mod EffectExtras.Alt {
 
     // `failure` is the stopping condition, so we can't use this for combinators like 
     // `skipManyTill` that stop on success.
-    def looping(p: Unit -> a \ ef, init: ac, sk: (a, ac) -> ac \ ef1): ac \ Alt + ef + ef1 =  
+    def loopTillFail(p: Unit -> a \ ef1, init: ac, sk: (a, ac) -> ac \ ef2): ac \ Alt + ef1 + ef2 =  
        def loop(k) = {
             match EffectExtras.Alt.optional(p) {
                 case Some(a) => loop(ka -> let ans = unchecked_cast(sk(a, ka) as _  \ {}); k(ans))
                 case None    => k(init)
             }
         };
-        unchecked_cast(loop(x -> x) as _  \ Alt + ef + ef1)
+        unchecked_cast(loop(x -> x) as _  \ Alt + ef1 + ef2)
+
+    def loopTillEnd(p: Unit -> a \ ef1, endp: Unit -> b \ ef2, init: ac, sk: (a, ac) -> ac \ ef3): (ac, b) \ Alt + ef1 + ef2 + ef3 =  
+       def loop(ac, k) = {
+            match EffectExtras.Alt.optional(endp) {
+                case Some(b) => k(ac, b)
+                case None    =>  {
+                    let a = p();
+                    let ac1 = unchecked_cast(sk(a, ac) as _  \ {});
+                    loop(ac1, k)
+                }
+            }
+        };
+        loop(init, (ac, b) -> (ac, b))
+
 
     pub def many(p: Unit -> a \ ef): List[a] \ Alt + ef = 
-        looping(p, Nil, List.cons)
+        loopTillFail(p, Nil, List.cons)
 
     pub def manyWith(combine: (a, ac) -> ac \ ef1, init: ac, p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
-        looping(p, init, combine)
+        loopTillFail(p, init, combine)
 
 
     pub def many1(p: Unit -> a \ ef): List[a] \ Alt + ef = 
@@ -115,27 +129,22 @@ pub mod EffectExtras.Alt {
 
 
     pub def ntimes(p: Unit -> a \ ef): Int32 \ Alt + ef = 
-       looping(p, 0, (_, ac) -> ac + 1)
+       loopTillFail(p, 0, (_, ac) -> ac + 1)
 
 
     pub def skipMany(p: Unit -> a \ ef): Unit \ Alt + ef = 
-        looping(p, (), (_, ac) -> ac)
+        loopTillFail(p, (), (_, ac) -> ac)
 
     pub def skipMany1(p: Unit -> a \ ef): Unit \ Alt + ef = 
         let _ = p();
         skipMany(p)
 
     pub def skipManyTill(p: Unit -> a \ ef1, endp: Unit -> b \ ef2): b \ Alt + ef1 + ef2 = 
-        def loop(k) = {
-            match EffectExtras.Alt.optional(endp) {
-                case Some(b) => k(b)
-                case None    => match EffectExtras.Alt.optional(p) {
-                    case Some(_) => loop(k)
-                    case None    => Alt.failure("skipManyTill")
-                }
-            }   
-        };
-        loop(identity)
+        loopTillEnd(p, endp, (), (_, ac) -> ac) |> snd
+
+   pub def skipMany1Till(p: Unit -> a \ ef1, endp: Unit -> b \ ef2): b \ Alt + ef1 + ef2 = 
+        let _ = p();
+        skipManyTill(p, endp)
 
 }
 
