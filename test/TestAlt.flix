@@ -1,6 +1,7 @@
 
 
 pub mod TestAlt { 
+    use SimpleParse.oneToNine
 
     use Assert.{assertTrue}
     use EffectExtras.Alt.Alt
@@ -22,6 +23,15 @@ pub mod TestAlt {
         );
         Assert.assertEq(expected = Ok(1), ans)
 
+
+
+    @Test
+    pub def alt01(): Unit \ Assert = 
+        let ans = runParser(
+            _ -> EffectExtras.Alt.alt(_ -> Alt.failure("fail1"), SimpleParse.anyNum),
+            List#{1,2,3,4}
+        );
+        Assert.assertEq(expected = Ok(1), ans)
 
 
     @Test
@@ -68,6 +78,15 @@ pub mod TestAlt {
 
 
     @Test
+    pub def swapError01(): Unit \ Assert = 
+        let ans = run {
+            let p: Unit -> Int32 \ Alt = () -> Alt.failure("fail");
+            EffectExtras.Alt.swapError("override", p)
+        } with EffectExtras.Alt.runWithResult;
+        Assert.assertEq(expected = Err("override"), ans)
+
+
+    @Test
     pub def many01(): Unit \ Assert = 
         let ans = runParser(
             _ -> EffectExtras.Alt.many(SimpleParse.zero), 
@@ -93,6 +112,33 @@ pub mod TestAlt {
 
 
     @Test
+    pub def manyWith01(): Unit \ Assert = 
+        let ans = runParser(
+            _ -> EffectExtras.Alt.manyWith(Chain.cons, Chain.empty(), SimpleParse.zero), 
+            List#{1,2,3,4}
+        );
+        Assert.assertEq(expected = Ok(Chain.empty()), ans)
+
+
+    @Test
+    pub def manyWith02(): Unit \ Assert = 
+        let ans = runParser(
+            _ -> EffectExtras.Alt.manyWith(Chain.cons, Chain.empty(), SimpleParse.anyNum), 
+            List#{1,2,3,4}
+        );
+        Assert.assertEq(expected = Ok(List#{1,2,3,4} |> List.toChain), ans)
+
+    @Test
+    pub def manyWith03(): Unit \ Assert = 
+        let ans = runParser(
+            _ -> EffectExtras.Alt.manyWith(Chain.cons, Chain.empty(), SimpleParse.oneToNine), 
+            List#{1,2,3,4,10}
+        );
+        Assert.assertEq(expected = Ok(List#{1,2,3,4} |> List.toChain), ans)
+
+
+
+    @Test
     pub def manyTill01(): Unit \ Assert = 
         let ans = runParser(
             _ -> EffectExtras.Alt.manyTill(SimpleParse.anyNum, SimpleParse.four), 
@@ -104,30 +150,11 @@ pub mod TestAlt {
 
 
     @Test
-    pub def alt01(): Unit \ Assert = 
+    pub def count01(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.alt(_ -> Alt.failure("fail1"), SimpleParse.anyNum),
+            _ -> EffectExtras.Alt.count(2, SimpleParse.oneToNine),
             List#{1,2,3,4}
         );
-        Assert.assertEq(expected = Ok(1), ans)
-
-
-
-
-
-    @Test
-    pub def count01(): Unit \ Assert = 
-        let ans = run {
-            EffectExtras.Alt.count(2, () -> 1)
-        } with EffectExtras.Alt.runWithResult;
-        Assert.assertEq(expected = Ok(List#{1, 1}), ans)
-
-    @Test
-    pub def swapError01(): Unit \ Assert = 
-        let ans = run {
-            let p: Unit -> Int32 \ Alt = () -> Alt.failure("fail");
-            EffectExtras.Alt.swapError("override", p)
-        } with EffectExtras.Alt.runWithResult;
-        Assert.assertEq(expected = Err("override"), ans)
+        Assert.assertEq(expected = Ok(List#{1, 2}), ans)
 
 }
