@@ -1,6 +1,7 @@
 
 
 pub mod SimpleParse {
+    use SimpleParse.satisfies
 
     use EffectExtras.Alt.Alt
 
@@ -55,5 +56,24 @@ pub mod SimpleParse {
             case Some(i) if pred(i) => SimpleParse.next()
             case _ => Alt.failure("satisfies")
         }
+
+    pub def anyNum(): Int32 \ SimpleParse = SimpleParse.next()
+
+    pub def zeroToNine(): Int32 \ Alt + SimpleParse = satisfies(x -> x >= 0 and x < 10)
+
+    pub def oneToNine(): Int32 \ Alt + SimpleParse = satisfies(x -> x > 0 and x < 10)
+
+
+    pub def zero(): Int32 \ Alt + SimpleParse = satisfies(x -> x == 0)
+    pub def one(): Int32 \ Alt + SimpleParse = satisfies(x -> x == 1)
+    pub def two(): Int32 \ Alt + SimpleParse = satisfies(x -> x == 2)
+    pub def three(): Int32 \ Alt + SimpleParse = satisfies(x -> x == 3)
+    pub def four(): Int32 \ Alt + SimpleParse = satisfies(x -> x == 4)
+
+    pub def isOdd(): Int32 \ Alt + SimpleParse = satisfies(x -> Int32.modulo(x, 2) != 0)
+
+    pub def isEven(): Int32 \ Alt + SimpleParse = satisfies(x -> Int32.modulo(x, 2) == 0)
+
+
 
 }
