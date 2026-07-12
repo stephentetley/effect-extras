@@ -41,6 +41,8 @@ pub mod EffectExtras.Alt {
     pub def runWithResult(f: Unit -> a \ ef): Result[String, a] \ ef - Alt =
         handleWithResult(f)()
 
+    pub def runWithDefault(d: a, f: Unit -> a \ ef): a \ ef - Alt = 
+        handleWithResult(f)() |> Result.getWithDefault(d)
 
     pub def alt(p: Unit -> a \ ef1, q: Unit -> a \ ef2 ): a \ Alt + ef1 + ef2 = 
         if (Alt.alternative()) p() else q()

@@ -39,6 +39,9 @@ pub mod EffectExtras.Fail {
     pub def runWithResult(f: Unit -> a \ ef): Result[String, a] \ ef - Fail = 
         handleWithResult(f)()
 
+    pub def runWithDefault(d: a, f: Unit -> a \ ef): a \ ef - Fail = 
+        handleWithResult(f)() |> Result.getWithDefault(d)
+
     pub def runWithResultOfIoError(f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail = 
         handleWithResult(f)() |> Result.mapErr(s -> IoError(IoError.ErrorKind.Other, s))
 
