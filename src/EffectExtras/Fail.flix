@@ -45,5 +45,9 @@ pub mod EffectExtras.Fail {
     pub def runWithResultOfIoError(f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail = 
         handleWithResult(f)() |> Result.mapErr(s -> IoError(IoError.ErrorKind.Other, s))
 
+    pub def fromResult(x: Result[e, a]): a \ Fail  with ToString[e] = match x {
+        case Ok(a)  => a 
+        case Err(e) => Fail.report(ToString.toString(e))
+    }
 
 }

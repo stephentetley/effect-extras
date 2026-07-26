@@ -89,7 +89,7 @@ pub mod TestAlt {
     @Test
     pub def many01(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.many(SimpleParse.zero), 
+            _ -> EffectExtras.Alt.Combinators.many(SimpleParse.zero), 
             List#{1,2,3,4}
         );
         Assert.assertEq(expected = Ok(List#{}), ans)
@@ -97,7 +97,7 @@ pub mod TestAlt {
     @Test
     pub def many02(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.many(SimpleParse.anyNum), 
+            _ -> EffectExtras.Alt.Combinators.many(SimpleParse.anyNum), 
             List#{1,2,3,4}
         );
         Assert.assertEq(expected = Ok(List#{1,2,3,4}), ans)
@@ -105,7 +105,7 @@ pub mod TestAlt {
     @Test
     pub def many03(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.many(SimpleParse.oneToNine), 
+            _ -> EffectExtras.Alt.Combinators.many(SimpleParse.oneToNine), 
             List#{1,2,3,4,10}
         );
         Assert.assertEq(expected = Ok(List#{1,2,3,4}), ans)
@@ -114,7 +114,7 @@ pub mod TestAlt {
     @Test
     pub def manyWith01(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.manyWith(Chain.cons, Chain.empty(), SimpleParse.zero), 
+            _ -> EffectExtras.Alt.Combinators.manyWith(Chain.cons, Chain.empty(), SimpleParse.zero), 
             List#{1,2,3,4}
         );
         Assert.assertEq(expected = Ok(Chain.empty()), ans)
@@ -123,7 +123,7 @@ pub mod TestAlt {
     @Test
     pub def manyWith02(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.manyWith(Chain.cons, Chain.empty(), SimpleParse.anyNum), 
+            _ -> EffectExtras.Alt.Combinators.manyWith(Chain.cons, Chain.empty(), SimpleParse.anyNum), 
             List#{1,2,3,4}
         );
         Assert.assertEq(expected = Ok(List#{1,2,3,4} |> List.toChain), ans)
@@ -131,7 +131,7 @@ pub mod TestAlt {
     @Test
     pub def manyWith03(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.manyWith(Chain.cons, Chain.empty(), SimpleParse.oneToNine), 
+            _ -> EffectExtras.Alt.Combinators.manyWith(Chain.cons, Chain.empty(), SimpleParse.oneToNine), 
             List#{1,2,3,4,10}
         );
         Assert.assertEq(expected = Ok(List#{1,2,3,4} |> List.toChain), ans)
@@ -141,7 +141,7 @@ pub mod TestAlt {
     @Test
     pub def manyTill01(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.manyTill(SimpleParse.anyNum, SimpleParse.four), 
+            _ -> EffectExtras.Alt.Combinators.manyTill(SimpleParse.anyNum, SimpleParse.four), 
             List#{1,2,3,4}
         );
         Assert.assertEq(expected = Ok(List#{1,2,3}), ans)
@@ -152,7 +152,7 @@ pub mod TestAlt {
     @Test
     pub def count01(): Unit \ Assert = 
         let ans = runParser(
-            _ -> EffectExtras.Alt.count(2, SimpleParse.oneToNine),
+            _ -> EffectExtras.Alt.Combinators.count(2, SimpleParse.oneToNine),
             List#{1,2,3,4}
         );
         Assert.assertEq(expected = Ok(List#{1, 2}), ans)
