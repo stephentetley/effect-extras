@@ -1,3 +1,6 @@
+### 
+   Added `fromOption` functions.
+
 ### v0.3.0
    Added `runWithDefault` functions.
    Added `fromResult` functions.

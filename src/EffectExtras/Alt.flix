@@ -66,8 +66,15 @@ pub mod EffectExtras.Alt {
         case Err(e) => Alt.failure(ToString.toString(e))
     }
 
+    pub def fromOption(x: Option[a]): a \ Alt = match x {
+        case Some(a)    => a 
+        case None       => Alt.failure("fromOption(None)")
+    }
 
-
+    pub def fromOptionWithMessage(msg: String, x: Option[a]): a \ Alt = match x {
+        case Some(a)    => a 
+        case None       => Alt.failure(msg)
+    }
 
 }
 

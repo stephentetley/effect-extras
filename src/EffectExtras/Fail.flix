@@ -50,4 +50,15 @@ pub mod EffectExtras.Fail {
         case Err(e) => Fail.report(ToString.toString(e))
     }
 
+    pub def fromOption(x: Option[a]): a \ Fail = match x {
+        case Some(a)    => a 
+        case None       => Fail.report("fromOption(None)")
+    }
+
+    pub def fromOptionWithMessage(msg: String, x: Option[a]): a \ Fail = match x {
+        case Some(a)    => a 
+        case None       => Fail.report(msg)
+    }
+
+
 }
