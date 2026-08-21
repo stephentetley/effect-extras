@@ -1,6 +1,7 @@
-### v0.3.2
+### v0.4.0
+   Major refactor - rewrote `Alt` and `Fail` to be layered (`Alt` is layered over 
+     and extends `Fail`)
    Added `assertNotNull` functions.
-   Added lifters to run `Fail` in `Alt` and run `Alt` in `Fail`.
 
 ### v0.3.1
    Added `fromOption` functions.

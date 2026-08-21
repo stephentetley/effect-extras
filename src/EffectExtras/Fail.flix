@@ -37,8 +37,20 @@ pub mod EffectExtras.Fail {
         }
     }
 
+    // The error message is lost
+    pub def handleWithOption(f: a -> b \ ef): a -> Option[b] \ ef - Fail = x -> {
+        run {
+            Some(f(x))
+        } with handler Fail {
+            def report(_, _) = None
+        }
+    }
+
     pub def runWithResult(f: Unit -> a \ ef): Result[String, a] \ ef - Fail = 
         handleWithResult(f)()
+
+    pub def runWithOption(f: Unit -> a \ ef): Option[a] \ ef - Fail = 
+        handleWithOption(f)()
 
     pub def runWithDefault(d: a, f: Unit -> a \ ef): a \ ef - Fail = 
         handleWithResult(f)() |> Result.getWithDefault(d)
@@ -69,8 +81,5 @@ pub mod EffectExtras.Fail {
     pub def assertNotNullWithMessage(msg: String, x: a): Unit \ Fail = 
         if (not Object.isNull(x)) () else Fail.report(msg)
 
-    pub def liftAlt(f: Unit -> a \ ef + Alt): a \ ef + Fail - Alt = 
-        let ans = run { f() } with Alt.runWithResult;
-        fromResult(ans)
 
 }

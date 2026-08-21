@@ -4,6 +4,7 @@ An incubator for Flix effects
 
 Two so far:
 
-* Alt - Failure with recovery within a "run"
-* Fail - Failure only detable as a result of running the computation
+* Fail - Failure is only detectable as a result of running the computation
+* Alt - extends `Fail` with the ability to run an alternative branch on failure
+
 

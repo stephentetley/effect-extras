@@ -17,7 +17,9 @@
 
 pub mod EffectExtras.Alt.Combinators {
 
+    use EffectExtras.Fail.Fail
     use EffectExtras.Alt.Alt
+    use EffectExtras.Alt.Alternative
     use EffectExtras.Alt.{alt, optional}
 
     // parser style combinators - use `many` etc with care, they will loop 
@@ -50,10 +52,10 @@ pub mod EffectExtras.Alt.Combinators {
         };
         loop(init, (ac, b) -> (ac, b))
 
-    pub def pchoice(ps: List[Unit -> a \ ef]): a \ Alt + ef = 
+    pub def pchoice(ps: List[Unit -> a \ ef]): a \ Alternative + ef = 
         def loop(xs) = match xs {
             case p :: fs => alt(p, _ -> loop(fs))
-            case Nil     => Alt.failure("pchoice")
+            case Nil     => Fail.report("pchoice")
         };
         loop(ps)
 
@@ -76,13 +78,13 @@ pub mod EffectExtras.Alt.Combinators {
                         p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
         combine(p(), manyWith(combine, init, p))
 
-    pub def manyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
+    pub def manyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alternative + ef + ef1 = 
         def loop(k) = {
             match optional(endp) {
                 case Some(_) => k(Nil)
                 case None    => match optional(p) {
                     case Some(a) => loop(ks -> k(a :: ks))
-                    case None => Alt.failure("manyTill")
+                    case None    => Fail.report("manyTill")
                 }
             }
         };
@@ -96,7 +98,7 @@ pub mod EffectExtras.Alt.Combinators {
                             endp: Unit -> b \ ef1): ac \ Alt + ef + ef1 + ef2 = 
         loopTillEnd(p, endp, init, combine) |> fst
 
-    pub def many1Till(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alt + ef + ef1 = 
+    pub def many1Till(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alternative + ef + ef1 = 
         p() :: manyTill(p, endp)
 
     pub def many1TillWith(combine: (a, ac) -> ac \ ef2, 
