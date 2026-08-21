@@ -76,5 +76,13 @@ pub mod EffectExtras.Alt {
         case None       => Alt.failure(msg)
     }
 
+    // Useful for Java interop
+    pub def assertNotNull(x: a): Unit \ Alt = 
+        if (not Object.isNull(x)) () else Alt.failure("object is null")
+
+    // Useful for Java interop
+    pub def assertNotNullWithMessage(msg: String, x: a): Unit \ Alt = 
+        if (not Object.isNull(x)) () else Alt.failure(msg)
+
 }
 

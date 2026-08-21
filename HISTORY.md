@@ -1,3 +1,6 @@
+### v0.3.2
+   Added `assertNotNull` functions.
+
 ### v0.3.1
    Added `fromOption` functions.
 

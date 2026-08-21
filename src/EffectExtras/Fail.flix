@@ -60,5 +60,12 @@ pub mod EffectExtras.Fail {
         case None       => Fail.report(msg)
     }
 
+    // Useful for Java interop
+    pub def assertNotNull(x: a): Unit \ Fail = 
+        if (not Object.isNull(x)) () else Fail.report("object is null")
+
+    // Useful for Java interop
+    pub def assertNotNullWithMessage(msg: String, x: a): Unit \ Fail = 
+        if (not Object.isNull(x)) () else Fail.report(msg)
 
 }
