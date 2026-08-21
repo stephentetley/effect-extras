@@ -19,7 +19,8 @@ pub mod EffectExtras.Fail {
 
     use IoError.ErrorKind
     use IoError.IoError
-
+    
+    use EffectExtras.Alt.Alt
 
     // An effect for error observable by "running" but not 
     // observable within a "run" itself.
@@ -67,5 +68,9 @@ pub mod EffectExtras.Fail {
     // Useful for Java interop
     pub def assertNotNullWithMessage(msg: String, x: a): Unit \ Fail = 
         if (not Object.isNull(x)) () else Fail.report(msg)
+
+    pub def liftAlt(f: Unit -> a \ ef + Alt): a \ ef + Fail - Alt = 
+        let ans = run { f() } with Alt.runWithResult;
+        fromResult(ans)
 
 }

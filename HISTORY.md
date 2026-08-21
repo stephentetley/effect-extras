@@ -1,5 +1,6 @@
 ### v0.3.2
    Added `assertNotNull` functions.
+   Added lifters to run `Fail` in `Alt` and run `Alt` in `Fail`.
 
 ### v0.3.1
    Added `fromOption` functions.
@@ -8,7 +9,6 @@
    Added `runWithDefault` functions.
    Added `fromResult` functions.
    Moved the `Alt` "parser" combinators into the module `EffectExtras.Alt.Combinators`.
-
 
 ### v0.2.0
    Added many combinators to `Alt`.

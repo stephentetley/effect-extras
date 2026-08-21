@@ -1,6 +1,6 @@
 # effect-extras
 
-A testbed for Flix effects
+An incubator for Flix effects
 
 Two so far:
 

@@ -6,7 +6,7 @@ pub mod TestFail {
     use EffectExtras.Fail.Fail
 
     @Test
-    pub def test01(): Unit \ { Assert, Logger }= 
+    pub def test01(): Unit \ { Assert, Logger } = 
         let ans = run {
             Logger.info("This is observable");
             Fail.report("fail1");

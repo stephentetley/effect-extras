@@ -84,5 +84,9 @@ pub mod EffectExtras.Alt {
     pub def assertNotNullWithMessage(msg: String, x: a): Unit \ Alt = 
         if (not Object.isNull(x)) () else Alt.failure(msg)
 
+    pub def liftFail(f: Unit -> a \ ef + Fail): a \ ef + Alt - Fail = 
+        let ans = run { f() } with Fail.runWithResult;
+        fromResult(ans)
+
 }
 
