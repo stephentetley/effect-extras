@@ -20,7 +20,7 @@ pub mod EffectExtras.Alt {
     use EffectExtras.Fail
 
     // An effect for recoverable errors within a "run".
-    // Alt is epexted to be layered above Fail
+    // Alt is expected to be layered above Fail
     pub eff Alt {
         def alternative(): Bool
     }

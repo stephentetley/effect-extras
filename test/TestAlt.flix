@@ -9,7 +9,7 @@ pub mod TestAlt {
     use SimpleParse.{runParser}
 
     @Test
-    pub def failure01(): Unit \ Assert = 
+    pub def failReport01(): Unit \ Assert = 
         let ans: Result[String, Int32] = run {
             Fail.report("fail1")
         } with EffectExtras.Alt.runWithResult;
