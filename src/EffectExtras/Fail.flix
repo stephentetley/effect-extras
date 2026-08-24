@@ -19,8 +19,6 @@ pub mod EffectExtras.Fail {
 
     use IoError.ErrorKind
     use IoError.IoError
-    
-    use EffectExtras.Alt.Alt
 
     // An effect for error observable by "running" but not 
     // observable within a "run" itself.
@@ -45,6 +43,23 @@ pub mod EffectExtras.Fail {
             def report(_, _) = None
         }
     }
+
+
+    pub def handle(f: a -> b \ ef): a -> b \ ef - Fail + IO = x -> {
+        run {
+            f(x)
+        } with handler Fail {
+            def report(msg, _) = { println(msg); bug!("Fail") }
+        }
+    }
+
+
+    // With this handler failure is not recoverable - an error message 
+    // is printed and the program stops.
+    @DefaultHandler
+    pub def runWithIO(f: Unit -> a \ ef): a \ ef - Fail + IO = 
+        handle(f)()
+
 
     pub def runWithResult(f: Unit -> a \ ef): Result[String, a] \ ef - Fail = 
         handleWithResult(f)()
@@ -82,4 +97,9 @@ pub mod EffectExtras.Fail {
         if (not Object.isNull(x)) () else Fail.report(msg)
 
 
+    // Useful for Java interop - expression version of `assertNotNull`
+    pub def returnNotNull(x: a): a \ Fail =
+        if (not Object.isNull(x)) x else Fail.report("object is null")
+
 }
+

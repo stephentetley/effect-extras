@@ -1,3 +1,7 @@
+### v0.4.1
+   Added default hander for `Fail`.
+   Added `returnNotNull`
+
 ### v0.4.0
    Major refactor - rewrote `Alt` and `Fail` to be layered (`Alt` is layered over 
      and extends `Fail`)
