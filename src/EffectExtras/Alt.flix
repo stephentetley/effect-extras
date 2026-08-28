@@ -28,6 +28,26 @@ pub mod EffectExtras.Alt {
     // Note - order of hanlders is crucial
     pub type alias Alternative = Alt + Fail
 
+
+    /// Interpret fail with Result, rethrow with Fail if the aswer is `Err`
+    pub def handle(f: a -> b \ ef): a -> b \ ef + Fail - Alt = x -> {
+        let ans = run {
+            Ok(f(x))
+        } with handler Fail {
+            def report(msg, _) = Err(msg)
+        }with handler Alt {
+            def alternative(k) = match k(true) {
+                case Ok(res) => Ok(res)
+                case Err(_)  => k(false)
+            }
+        };
+        match ans {
+            case Ok(b)      => b
+            case Err(msg)   => Fail.report(msg)
+        }
+    }
+
+
     pub def handleWithResult(f: a -> b \ ef): a -> Result[String, b] \ ef - Alternative = x -> {
         run {
             Ok(f(x))
@@ -53,6 +73,9 @@ pub mod EffectExtras.Alt {
             }
         } 
     }
+    
+    pub def runAlt(f: Unit -> a \ ef): a \ ef + Fail - Alt =
+        handle(f)()
 
     pub def runWithResult(f: Unit -> a \ ef): Result[String, a] \ ef - Alternative =
         handleWithResult(f)()

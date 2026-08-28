@@ -1,3 +1,6 @@
+### v0.4.2
+   Added `Alt.runAlt`
+
 ### v0.4.1
    Added default hander for `Fail`.
    Added `returnNotNull`
