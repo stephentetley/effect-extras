@@ -57,7 +57,7 @@ pub mod EffectExtras.Fail {
     // With this handler failure is not recoverable - an error message 
     // is printed and the program stops.
     @DefaultHandler
-    pub def runWithIO(f: Unit -> a \ ef): a \ ef - Fail + IO = 
+    pub def runWithIO(f: Unit -> a \ ef): a \ ef + IO - Fail = 
         handle(f)()
 
 

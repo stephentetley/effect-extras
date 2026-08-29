@@ -1,5 +1,5 @@
 ### v0.4.2
-   Added `Alt.runAlt`
+   Added `Alt.runAlt` and `Alt.runWithIO`.
 
 ### v0.4.1
    Added default hander for `Fail`.

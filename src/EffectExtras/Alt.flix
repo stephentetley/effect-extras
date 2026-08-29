@@ -73,7 +73,14 @@ pub mod EffectExtras.Alt {
             }
         } 
     }
-    
+
+
+    // With this handler failure is not recoverable - an error message 
+    // is printed and the program stops.
+    // (Can't be a default handler because it discharges two effects)
+    pub def runWithIO(f: Unit -> a \ ef): a \ ef  + IO - {Alt + Fail} = 
+        Fail.runWithIO(() -> handle(f)())
+
     pub def runAlt(f: Unit -> a \ ef): a \ ef + Fail - Alt =
         handle(f)()
 
