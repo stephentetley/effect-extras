@@ -26,11 +26,11 @@ pub mod EffectExtras.Alt {
     }
 
     // Note - order of hanlders is crucial
-    pub type alias Alternative[e] = Alt + Fail[e]
+    pub type alias Alternative[err] = Alt + Fail[err]
 
 
     /// Interpret fail with Result, rethrow with Fail if the aswer is `Err`
-    pub def handle(f: a -> b \ ef): a -> b \ ef + Fail[e] - Alt = x -> {
+    pub def handle(f: a -> b \ ef): a -> b \ ef + Fail[err] - Alt = x -> {
         let ans = run {
             Ok(f(x))
         } with handler Fail {
@@ -48,7 +48,7 @@ pub mod EffectExtras.Alt {
     }
 
 
-    pub def handleWithResult(f: a -> b \ ef): a -> Result[e, b] \ ef - Alternative[e] = x -> {
+    pub def handleWithResult(f: a -> b \ ef): a -> Result[err, b] \ ef - Alternative[err] = x -> {
         run {
             Ok(f(x))
         } with handler Fail {
@@ -61,7 +61,7 @@ pub mod EffectExtras.Alt {
         }
     }
 
-    pub def handleWithOption(f: a -> b \ ef): a -> Option[b] \ ef - Alternative[e] = x -> {
+    pub def handleWithOption(f: a -> b \ ef): a -> Option[b] \ ef - Alternative[err] = x -> {
         run {
             Some(f(x))
         } with handler Fail {
@@ -78,16 +78,16 @@ pub mod EffectExtras.Alt {
     // With this handler failure is not recoverable - an error message 
     // is printed and the program stops.
     // (Can't be a default handler because it discharges two effects)
-    pub def runWithIO(f: Unit -> a \ ef): a \ ef  + IO - {Alt + Fail[e]} with ToString[e] = 
+    pub def runWithIO(f: Unit -> a \ ef): a \ ef  + IO - {Alt + Fail[err]} with ToString[err] = 
         Fail.runWithIO(() -> handle(f)())
 
-    pub def runAlt(f: Unit -> a \ ef): a \ ef + Fail[e] - Alt =
+    pub def runAlt(f: Unit -> a \ ef): a \ ef + Fail[err] - Alt =
         handle(f)()
 
-    pub def runWithResult(f: Unit -> a \ ef): Result[e, a] \ ef - Alternative[e] =
+    pub def runWithResult(f: Unit -> a \ ef): Result[err, a] \ ef - Alternative[err] =
         handleWithResult(f)()
 
-    pub def runWithDefault(d: a, f: Unit -> a \ ef): a \ ef - Alternative[e] = 
+    pub def runWithDefault(d: a, f: Unit -> a \ ef): a \ ef - Alternative[err] = 
         handleWithResult(f)() |> Result.getWithDefault(d)
 
     pub def alt(p: Unit -> a \ ef1, q: Unit -> a \ ef2 ): a \ Alt + ef1 + ef2 = 
@@ -99,7 +99,7 @@ pub mod EffectExtras.Alt {
     pub def withDefault(p: Unit -> a \ ef, d: a): a \ Alt + ef = 
         alt(p, _ -> d)
 
-    pub def swapError(err: e, p: Unit -> a \ ef): a \ Alternative[e] + ef = 
+    pub def swapError(err: err, p: Unit -> a \ ef): a \ Alternative[err] + ef = 
         alt(p, _ -> Fail.report(err))
         
 
