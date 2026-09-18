@@ -81,7 +81,7 @@ pub mod TestAlt {
     @Test
     pub def swapError01(): Unit \ Assert = 
         let ans = run {
-            let p: Unit -> Int32 \ Fail = () -> Fail.report("fail");
+            let p: Unit -> Int32 \ Fail[String] = () -> Fail.report("fail");
             EffectExtras.Alt.swapError("override", p)
         } with EffectExtras.Alt.runWithResult;
         Assert.assertEq(expected = Err("override"), ans)

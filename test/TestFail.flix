@@ -17,7 +17,7 @@ pub mod TestFail {
 
     @Test
     pub def test02(): Unit \ { Assert, Logger } = 
-        let ans = run {
+        let ans: Result[String, Int32] = run {
             Logger.info("This is observable");
             1
         } with EffectExtras.Fail.runWithResult;

@@ -52,7 +52,7 @@ pub mod EffectExtras.Alt.Combinators {
         };
         loop(init, (ac, b) -> (ac, b))
 
-    pub def pchoice(ps: List[Unit -> a \ ef]): a \ Alternative + ef = 
+    pub def pchoice(ps: List[Unit -> a \ ef]): a \ Alternative[String] + ef = 
         def loop(xs) = match xs {
             case p :: fs => alt(p, _ -> loop(fs))
             case Nil     => Fail.report("pchoice")
@@ -78,7 +78,7 @@ pub mod EffectExtras.Alt.Combinators {
                         p: Unit -> a \ ef): ac \ (Alt + ef + ef1) = 
         combine(p(), manyWith(combine, init, p))
 
-    pub def manyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alternative + ef + ef1 = 
+    pub def manyTill(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alternative[String] + ef + ef1 = 
         def loop(k) = {
             match optional(endp) {
                 case Some(_) => k(Nil)
@@ -98,7 +98,7 @@ pub mod EffectExtras.Alt.Combinators {
                             endp: Unit -> b \ ef1): ac \ Alt + ef + ef1 + ef2 = 
         loopTillEnd(p, endp, init, combine) |> fst
 
-    pub def many1Till(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alternative + ef + ef1 = 
+    pub def many1Till(p: Unit -> a \ ef, endp: Unit -> b \ ef1): List[a] \ Alternative[String] + ef + ef1 = 
         p() :: manyTill(p, endp)
 
     pub def many1TillWith(combine: (a, ac) -> ac \ ef2, 
