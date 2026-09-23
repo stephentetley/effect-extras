@@ -100,5 +100,9 @@ pub mod EffectExtras.Fail {
     pub def returnNotNull(x: a): a \ Fail[Unit] =
         if (not Object.isNull(x)) x else Fail.report(())
 
+    // Useful for Java interop - expression version of `assertNotNull`
+    pub def returnNotNullWithFail(err: err, x: a): a \ Fail[err] =
+        if (not Object.isNull(x)) x else Fail.report(err)
+
 }
 

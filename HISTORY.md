@@ -1,5 +1,5 @@
 ### v0.5.0
-   Made Fail and Alt polymorphic in the error type.
+   Made Fail polymorphic in the error type.
 
 ### v0.4.2
    Added `Alt.runAlt` and `Alt.runWithIO`.
