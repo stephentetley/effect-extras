@@ -1,17 +1,8 @@
 /*
  * Copyright 2026 Stephen Tetley
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the LICENSE.md file.
  */
 
 
@@ -44,20 +35,36 @@ pub mod EffectExtras.Fail {
         }
     }
 
-
-    pub def handle(f: a -> b \ ef): a -> b \ ef - Fail[err] + IO with ToString[err] = x -> {
+    // The error message is lost
+    pub def handleWithDefault(d: b, f: a -> b \ ef): a -> b \ ef - Fail[err] = x -> {
         run {
             f(x)
         } with handler Fail {
-            def report(msg, _) = { println("${msg}"); bug!("Fail") }
+            def report(_, _) = d
         }
     }
 
+    // We can't have a safe handle in IO matching the signature for a default 
+    // handler - i.e. :
+    // > handle(f: a -> b \ ef): a -> b \ ef + IO - Fail
+    //
+    // because Fail is polymorphic.
+    // 
+    // We can make a quite close unsafe version but it relies on `bug!`
+    // and doesn't solve the polymorphism problem:
+    //
+    // pub def unsafe_handle(f: a -> b \ ef): a -> b \ ef - Fail[err] + IO with ToString[err] = x -> {
+    //     run {
+    //         f(x)
+    //     } with handler Fail {
+    //         def report(msg, _) = { println("${msg}"); bug!("Fail") }
+    //     }
+    // }
+    //
+    // ... It seems best not to bother with it
+    //
 
-    // With this handler failure is not recoverable - an error message 
-    // is printed and the program stops.
-    pub def runWithIO(f: Unit -> a \ ef): a \ ef + IO - Fail[err] with ToString[err] = 
-        handle(f)()
+
 
 
     pub def runWithResult(f: Unit -> a \ ef): Result[err, a] \ ef - Fail[err] = 

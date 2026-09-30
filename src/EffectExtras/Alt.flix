@@ -1,17 +1,8 @@
 /*
  * Copyright 2026 Stephen Tetley
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the LICENSE.md file.
  */
 
 
@@ -74,12 +65,14 @@ pub mod EffectExtras.Alt {
         } 
     }
 
+    pub def handleWithDefault(d: b, f: a -> b \ ef): a -> b \ ef - Alternative[err] = x -> {
+        handleWithOption(f)(x) |> Option.getWithDefault(d)
+    }
 
-    // With this handler failure is not recoverable - an error message 
-    // is printed and the program stops.
-    // (Can't be a default handler because it discharges two effects)
-    pub def runWithIO(f: Unit -> a \ ef): a \ ef  + IO - {Alt + Fail[err]} with ToString[err] = 
-        Fail.runWithIO(() -> handle(f)())
+
+    // We can't have a default handler because we need to discharge 
+    // two effects - `Alt` and `Fail`, and `Fail` can't have a (safe) 
+    // `runWithIO` producing an unwrapped answer (not Option or Result).
 
     pub def runAlt(f: Unit -> a \ ef): a \ ef + Fail[err] - Alt =
         handle(f)()

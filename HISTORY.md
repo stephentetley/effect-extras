@@ -1,5 +1,9 @@
+### v0.6.0
+   Removed `runWithIO` functions - they weren't useful enough to moderate
+      being unsafe.
+
 ### v0.5.0
-   Made Fail polymorphic in the error type.
+   Made `Fail` polymorphic in the error type.
 
 ### v0.4.2
    Added `Alt.runAlt` and `Alt.runWithIO`.
@@ -10,7 +14,7 @@
 
 ### v0.4.0
    Major refactor - rewrote `Alt` and `Fail` to be layered (`Alt` is layered over 
-     and extends `Fail`)
+      and extends `Fail`)
    Added `assertNotNull` functions.
 
 ### v0.3.1
