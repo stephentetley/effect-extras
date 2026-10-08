@@ -1,3 +1,6 @@
+### v0.7.0
+   Updated to use the new style package definition.
+
 ### v0.6.0
    Removed `runWithIO` functions - they weren't useful enough to moderate
       being unsafe.
