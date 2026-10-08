@@ -18,7 +18,7 @@ pub mod EffectExtras.Fail {
     }
 
 
-    pub def handleWithResult(f: a -> b \ ef): a -> Result[err, b] \ ef - Fail[err] = x -> {
+    pub def handleWithResult(_px: Proxy[err], f: a -> b \ ef): a -> Result[err, b] \ ef - Fail[err] = x -> {
         run {
             Ok(f(x))
         } with handler Fail {
@@ -27,7 +27,7 @@ pub mod EffectExtras.Fail {
     }
 
     // The error message is lost
-    pub def handleWithOption(f: a -> b \ ef): a -> Option[b] \ ef - Fail[err] = x -> {
+    pub def handleWithOption(_px: Proxy[err], f: a -> b \ ef): a -> Option[b] \ ef - Fail[err] = x -> {
         run {
             Some(f(x))
         } with handler Fail {
@@ -36,7 +36,7 @@ pub mod EffectExtras.Fail {
     }
 
     // The error message is lost
-    pub def handleWithDefault(d: b, f: a -> b \ ef): a -> b \ ef - Fail[err] = x -> {
+    pub def handleWithDefault(_px: Proxy[err], d: b, f: a -> b \ ef): a -> b \ ef - Fail[err] = x -> {
         run {
             f(x)
         } with handler Fail {
@@ -67,17 +67,17 @@ pub mod EffectExtras.Fail {
 
 
 
-    pub def runWithResult(f: Unit -> a \ ef): Result[err, a] \ ef - Fail[err] = 
-        handleWithResult(f)()
+    pub def runWithResult(px: Proxy[err], f: Unit -> a \ ef): Result[err, a] \ ef - Fail[err] = 
+        handleWithResult(px, f)()
 
-    pub def runWithOption(f: Unit -> a \ ef): Option[a] \ ef - Fail[err] = 
-        handleWithOption(f)()
+    pub def runWithOption(px: Proxy[err], f: Unit -> a \ ef): Option[a] \ ef - Fail[err] = 
+        handleWithOption(px, f)()
 
-    pub def runWithDefault(d: a, f: Unit -> a \ ef): a \ ef - Fail[err] = 
-        handleWithResult(f)() |> Result.getWithDefault(d)
+    pub def runWithDefault(px: Proxy[err], d: a, f: Unit -> a \ ef): a \ ef - Fail[err] = 
+        handleWithResult(px, f)() |> Result.getWithDefault(d)
 
-    pub def runWithResultOfIoError(f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail[err] with ToString[err] = 
-        handleWithResult(f)() |> Result.mapErr(e -> IoError(IoError.ErrorKind.Other, ToString.toString(e)))
+    pub def runWithResultOfIoError(px: Proxy[err], f: Unit -> a \ ef): Result[IoError, a] \ ef - Fail[err] with ToString[err] = 
+        handleWithResult(px, f)() |> Result.mapErr(e -> IoError(IoError.ErrorKind.Other, ToString.toString(e)))
 
     pub def fromResult(x: Result[err, a]): a \ Fail[err] = match x {
         case Ok(a)  => a 

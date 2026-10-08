@@ -1,3 +1,7 @@
+### v0.8.0
+   `Fail` changed run with a proxy so the error type is visible to the
+      Flix compiler.
+
 ### v0.7.0
    Updated to use the new style package definition.
 

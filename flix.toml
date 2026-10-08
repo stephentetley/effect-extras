@@ -1,5 +1,5 @@
 [package]
-version     = "0.7.0"
+version     = "0.8.0"
 flix        = "0.76.2"
 repository  = "github:stephentetley/effect-extras"
 
